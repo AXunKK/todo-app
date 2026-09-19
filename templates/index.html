@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>我的待办清单</title>
+</head>
+<body>
+    <h1>我的待办清单</h1>
+    
+    <!-- 表单：输入框和添加按钮 -->
+    <form action="/add" method="POST">
+        <input type="text" name="task" placeholder="输入新任务..." required>
+        <button type="submit">添加</button>
+    </form>
+
+    <hr>
+
+    <!-- 列表：显示所有待办事项 -->
+        <ul>
+        {% for task in tasks %}
+            <li>
+                {{ task[1] }} 
+                <a href="/complete/{{ task[0] }}">[完成]</a> 
+                <a href="/delete/{{ task[0] }}">[删除]</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
