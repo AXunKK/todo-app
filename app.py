@@ -1,3 +1,4 @@
+from flask import Flask, render_template, request, redirect, jsonify
 import sqlite3
 from datetime import datetime
 from flask import Flask, render_template, request, redirect
@@ -42,39 +43,62 @@ def index():
     
     # 3. 把参数传回给前端，方便前端保持页面状态
     return render_template('index.html', tasks=tasks, filter_date=filter_date, status=status)
+
 @app.route('/add', methods=['POST'])
 def add():
     task_content = request.form.get('task')
-    due_date = request.form.get('due_date') # 获取前端选择的截止日期
+    due_date = request.form.get('due_date')
     
     if task_content:
-        # 自动获取当前日期（格式：2026-09-21）
-        created_at = datetime.now().strftime("%Y-%m-%d") 
+        created_at = datetime.now().strftime("%Y-%m-%d")
         
+        if not due_date:
+            due_date = created_at
+            
         conn = get_db()
-        # 插入三个新字段
-        conn.execute('INSERT INTO tasks (task, created_at, due_date) VALUES (?, ?, ?)', 
+        cursor = conn.execute('INSERT INTO tasks (task, created_at, due_date) VALUES (?, ?, ?)', 
                      (task_content, created_at, due_date))
+        new_id = cursor.lastrowid
         conn.commit()
         conn.close()
         
-    return redirect('/')
+        return jsonify({
+            "status": "success",
+            "id": new_id,
+            "task": task_content,
+            "created_at": created_at,
+            "due_date": due_date 
+        })
+        
+    return jsonify({"status": "error", "message": "任务内容不能为空"})
 
+# 标记任务完成
 @app.route('/complete/<int:task_id>')
 def complete(task_id):
     conn = get_db()
     conn.execute('UPDATE tasks SET done = 1 WHERE id = ?', (task_id,))
     conn.commit()
     conn.close()
-    return redirect('/')
+    return jsonify({"status": "success"})
 
+# 撤销任务完成（把状态改回未完成）
+@app.route('/undo/<int:task_id>')
+def undo(task_id):
+    conn = get_db()
+    # 将对应 ID 的任务标记为未完成 (done=0)
+    conn.execute('UPDATE tasks SET done = 0 WHERE id = ?', (task_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success"})
+
+# 删除任务
 @app.route('/delete/<int:task_id>')
 def delete(task_id):
     conn = get_db()
     conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
     conn.commit()
     conn.close()
-    return redirect('/')
+    return jsonify({"status": "success"})
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

@@ -1,0 +1,192 @@
+/* 1. 全局基础设置 */
+body {
+    background-color: #f0f2f5; /* 柔和的浅灰色背景 */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 现代无衬线字体 */
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto; /* 居中 */
+    padding: 20px;
+}
+
+/* 2. 标题区域 */
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* 3. 卡片容器（给表单和列表加白底、圆角、阴影） */
+.card {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin-bottom: 20px;
+}
+
+/* 4. 输入框和按钮美化 */
+input[type="text"], input[type="date"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-sizing: border-box; /* 防止内边距撑破宽度 */
+    font-size: 14px;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+/* 5. 分类标签栏美化 */
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    background: #ffffff;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 20px;
+}
+
+.tabs a {
+    text-decoration: none;
+    color: #555;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.tabs a:hover {
+    background-color: #f0f2f5;
+}
+
+/* 当前选中的标签样式 */
+.tabs a.active {
+    background-color: #4CAF50;
+    color: white;
+}
+
+/* 6. 任务列表项美化 */
+ul {
+    list-style-type: none; /* 去掉默认的小圆点 */
+    padding: 0;
+}
+
+li {
+    background: #fafafa;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 4px solid #4CAF50; /* 左侧绿色高亮条 */
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 任务文字区域 */
+.task-content {
+    flex: 1;
+    font-size: 16px;
+}
+
+/* 任务元数据（日期、状态） */
+.task-meta {
+    font-size: 12px;
+    color: #888;
+    margin-left: 10px;
+}
+
+/* 按钮美化 */
+.task-actions a {
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+
+.complete-btn {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.delete-btn {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+/* 已完成任务的样式（加删除线、变灰） */
+.task-done {
+    text-decoration: line-through;
+    color: #999;
+    border-left-color: #ccc; /* 已完成的任务左侧变成灰色 */
+}
+
+
+/* 输入框整体外观 */
+input[type="date"] {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0 15px 0;
+    border: 2px solid #e0e0e0; /* 稍微加粗边框 */
+    border-radius: 8px;
+    background-color: #fafafa;
+    font-size: 15px;
+    color: #333;
+    font-family: inherit;
+    outline: none; /* 去掉点击时的蓝框 */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+/* 鼠标悬停时的效果 */
+input[type="date"]:hover {
+    border-color: #4CAF50; /* 悬停变成绿色 */
+}
+
+/* 点击聚焦时的效果 */
+input[type="date"]:focus {
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* 绿色柔和光晕 */
+    background-color: #ffffff;
+}
+
+/* 隐藏浏览器默认的丑日历图标，替换成我们自定义的 */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    font-size: 18px;
+    /* 下面这行代码让图标悬停时稍微变大 */
+    transition: transform 0.2s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    transform: scale(1.2);
+}
+.undo-btn {
+    background-color: #fff3e0; /* 浅橙色底 */
+    color: #ef6c00; /* 深橙色字 */
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-left: 5px;
+}
+.undo-btn:hover {
+    background-color: #ffe0b2;
+}

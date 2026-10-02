@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>我的待办清单</title>
+    <!-- 引入我们刚才写的 CSS 文件 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>✨ 我的待办清单</h1>
+    
+    <!-- 1. 添加任务卡片 -->
+    <div class="card">
+        <form id="addForm" action="/add" method="POST">
+            <input type="text" name="task" placeholder="输入新任务..." required>
+            <input type="date" name="due_date" title="截止日期">
+            <button type="submit">➕ 添加任务</button>
+        </form>
+    </div>
+
+    <!-- 2. 状态分类标签 -->
+    <div class="tabs">
+        <a href="/?status=all&filter_date={{ filter_date }}" class="{% if status == 'all' %}active{% endif %}">全部</a>
+        <a href="/?status=todo&filter_date={{ filter_date }}" class="{% if status == 'todo' %}active{% endif %}">未完成</a>
+        <a href="/?status=done&filter_date={{ filter_date }}" class="{% if status == 'done' %}active{% endif %}">已完成</a>
+    </div>
+
+    <!-- 3. 日期筛选卡片 -->
+    <div class="card">
+        <form action="/" method="GET">
+            <input type="hidden" name="status" value="{{ status }}">
+            <label for="filter_date" style="font-size: 14px; color: #666;">按截止日期筛选：</label>
+            <input type="date" id="filter_date" name="filter_date" value="{{ filter_date }}">
+            <button type="submit">🔍 查看</button>
+            {% if filter_date %}
+                <a href="/?status={{ status }}" style="display:block; text-align:center; margin-top:10px; font-size:13px;">清除日期筛选</a>
+            {% endif %}
+        </form>
+    </div>
+
+    <!-- 4. 任务列表 -->
+    <ul id="taskList">
+        {% for task in tasks %}
+            <!-- 如果任务已完成，加上 task-done 样式 -->
+            <li id="task-{{ task['id'] }}" class="{% if task['done'] == 1 %}task-done{% endif %}">
+                <div class="task-content">
+                    {{ task['task'] }}
+                    <div class="task-meta">
+                        设定于: {{ task['created_at'] }} | 截止: {{ task['due_date'] or '未设定' }}
+                    </div>
+                </div>
+                
+                <div class="task-actions">
+                    {% if task['done'] == 1 %}
+                        <!-- 已完成状态：显示撤销和删除 -->
+                        <span style="color: #2e7d32; font-weight: bold;">✅ 已完成</span>
+                        <a href="/undo/{{ task['id'] }}" class="undo-btn">撤销</a>
+                        <a href="/delete/{{ task['id'] }}" class="delete-btn">删除</a>
+                    {% else %}
+                        <!-- 未完成状态：显示完成和删除 -->
+                        <a href="/complete/{{ task['id'] }}" class="complete-btn">完成</a>
+                        <a href="/delete/{{ task['id'] }}" class="delete-btn">删除</a>
+                    {% endif %}
+                </div>
+            </li>
+        {% else %}
+            <li style="justify-content: center; color: #999; border-left-color: #ccc;">暂无任务，休息一下吧！</li>
+        {% endfor %}
+    </ul>
+
+    <!-- 5. JavaScript 交互逻辑 -->
+    <script>
+        // --- 页面加载时，自动把添加任务的截止日期填成今天 ---
+                // --- 页面加载时，自动把添加任务的截止日期填成今天 ---
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const localDate = `${yyyy}-${mm}-${dd}`;
+            
+            // 1. 找到添加任务表单里的日期输入框
+            const dateInput = document.querySelector('#addForm input[name="due_date"]');
+            if (dateInput && !dateInput.value) { 
+                dateInput.value = localDate;
+            }
+
+            const filterDateInput = document.getElementById('filter_date');
+            if (filterDateInput && !filterDateInput.value) {
+                filterDateInput.value = localDate;
+            }
+        });
+
+        // --- 监听表单的提交事件（无刷新添加） ---
+        document.getElementById('addForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // 阻止浏览器刷新
+
+            const taskInput = document.querySelector('input[name="task"]');
+            const dateInput = document.querySelector('input[name="due_date"]');
+            
+            const formData = new FormData();
+            formData.append('task', taskInput.value);
+            formData.append('due_date', dateInput.value);
+
+            fetch('/add', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 1. 清空任务内容的输入框
+                    taskInput.value = '';
+                    
+                    // 2. 💡 保留用户选择的日期，不再强制重置为今天
+                    // 如果用户手动把日期清空了，我们再兜底填今天
+                    if (!dateInput.value) {
+                        const today = new Date();
+                        const yyyy = today.getFullYear();
+                        const mm = String(today.getMonth() + 1).padStart(2, '0');
+                        const dd = String(today.getDate()).padStart(2, '0');
+                        dateInput.value = `${yyyy}-${mm}-${dd}`;
+                    }
+
+                    // 2. 动态在页面列表中插入新任务
+                    const taskList = document.getElementById('taskList');
+                    const li = document.createElement('li');
+                    
+                    li.className = ''; // 新任务是未完成的，不需要 task-done 类
+                    // 注意：动态生成的元素也必须加上 id，方便后续事件委托定位
+                    li.id = `task-${data.id}`;
+                    
+                    li.innerHTML = `
+                        <div class="task-content">
+                            ${data.task}
+                            <div class="task-meta">
+                                设定于: ${data.created_at} | 截止: ${data.due_date}
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <a href="/complete/${data.id}" class="complete-btn">完成</a>
+                            <a href="/delete/${data.id}" class="delete-btn">删除</a>
+                        </div>
+                    `;
+                    
+                    taskList.insertBefore(li, taskList.firstChild);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+
+        // ==========================================
+        // 无刷新删除、完成与撤销（事件委托）
+        // ==========================================
+        const taskList = document.getElementById('taskList');
+
+        taskList.addEventListener('click', function(e) {
+            const completeBtn = e.target.closest('.complete-btn');
+            const deleteBtn = e.target.closest('.delete-btn');
+            const undoBtn = e.target.closest('.undo-btn'); // 新增撤销按钮捕获
+
+            // --- 处理“完成”按钮 ---
+            if (completeBtn) {
+                e.preventDefault(); 
+                const url = completeBtn.getAttribute('href');
+                const li = completeBtn.closest('li');
+                const taskId = li.id.split('-')[1]; // 提取任务 ID
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // 1. 加上完成样式
+                            li.classList.add('task-done');
+                            
+                            // 2. 替换右侧按钮区域（包含撤销按钮）
+                            const actions = li.querySelector('.task-actions');
+                            actions.innerHTML = `
+                                <span style="color: #2e7d32; font-weight: bold;">✅ 已完成</span>
+                                <a href="/undo/${taskId}" class="undo-btn">撤销</a>
+                                <a href="/delete/${taskId}" class="delete-btn">删除</a>
+                            `;
+                        }
+                    });
+            }
+
+            // --- 处理“撤销”按钮 ---
+            if (undoBtn) {
+                e.preventDefault();
+                const url = undoBtn.getAttribute('href');
+                const li = undoBtn.closest('li');
+                const taskId = li.id.split('-')[1];
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // 1. 移除完成样式
+                            li.classList.remove('task-done');
+                            
+                            // 2. 把右侧按钮区域还原为“完成”和“删除”
+                            const actions = li.querySelector('.task-actions');
+                            actions.innerHTML = `
+                                <a href="/complete/${taskId}" class="complete-btn">完成</a>
+                                <a href="/delete/${taskId}" class="delete-btn">删除</a>
+                            `;
+                        }
+                    });
+            }
+
+            // --- 处理“删除”按钮 ---
+            if (deleteBtn) {
+                e.preventDefault();
+                const url = deleteBtn.getAttribute('href');
+                const li = deleteBtn.closest('li');
+
+                if (!confirm('确定要删除这个任务吗？')) return;
+
+                fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            li.style.transition = 'opacity 0.3s';
+                            li.style.opacity = '0';
+                            setTimeout(() => li.remove(), 300);
+                        }
+                    });
+            }
+        });
+    </script>
+</body>
+</html>
