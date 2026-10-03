@@ -1,47 +1,67 @@
-from flask import Flask, render_template, request, redirect, jsonify
+import os
+import sys
 import sqlite3
 from datetime import datetime
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, jsonify
 
-app = Flask(__name__)
+# 1. 动态判断环境（解决打包后找不到模板和静态文件的问题）
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    app = Flask(__name__)
 
+# 2. 获取数据库路径（解决打包后找不到数据库的问题）
+def get_db_path():
+    if getattr(sys, 'frozen', False):
+        app_data_dir = os.path.join(os.path.expanduser('~'), 'TodoAppData')
+        os.makedirs(app_data_dir, exist_ok=True)
+        return os.path.join(app_data_dir, 'database.db')
+    else:
+        return 'database.db'
+
+# 3. 获取数据库连接
 def get_db():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
     return conn
 
+# 4. 初始化数据库并自动建表
+def init_db():
+    conn = get_db()
+    conn.execute('CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY, task TEXT, created_at TEXT, due_date TEXT, done INTEGER DEFAULT 0)')
+    conn.commit()
+    conn.close()
+
+# 执行一次初始化
+init_db()
+
+# ================= 以下是你的业务逻辑路由 =================
+
 @app.route('/')
 def index():
-    # 1. 获取前端传过来的参数（如果没有，提供默认值）
-    filter_date = request.args.get('filter_date', '') # 日期筛选
-    status = request.args.get('status', 'todo')       # 状态筛选，默认看“未完成(todo)”
+    filter_date = request.args.get('filter_date', '') 
+    status = request.args.get('status', 'todo')       
     
     conn = get_db()
-    
-    # 2. 动态拼接 SQL 查询（这是后端开发非常核心的技术）
-    # 这样写可以兼容各种条件的组合
     query = 'SELECT * FROM tasks WHERE 1=1'
     params = []
     
-    # 处理状态筛选
     if status == 'todo':
         query += ' AND done = 0'
     elif status == 'done':
         query += ' AND done = 1'
-    # status == 'all' 时，什么都不加，代表查询全部
     
-    # 处理日期筛选
     if filter_date:
         query += ' AND due_date = ?'
         params.append(filter_date)
         
-    query += ' ORDER BY id DESC' # 最新的任务排在最上面
+    query += ' ORDER BY id DESC' 
     
-    # 执行查询
     tasks = conn.execute(query, params).fetchall()
     conn.close()
     
-    # 3. 把参数传回给前端，方便前端保持页面状态
     return render_template('index.html', tasks=tasks, filter_date=filter_date, status=status)
 
 @app.route('/add', methods=['POST'])
@@ -72,7 +92,6 @@ def add():
         
     return jsonify({"status": "error", "message": "任务内容不能为空"})
 
-# 标记任务完成
 @app.route('/complete/<int:task_id>')
 def complete(task_id):
     conn = get_db()
@@ -81,17 +100,14 @@ def complete(task_id):
     conn.close()
     return jsonify({"status": "success"})
 
-# 撤销任务完成（把状态改回未完成）
 @app.route('/undo/<int:task_id>')
 def undo(task_id):
     conn = get_db()
-    # 将对应 ID 的任务标记为未完成 (done=0)
     conn.execute('UPDATE tasks SET done = 0 WHERE id = ?', (task_id,))
     conn.commit()
     conn.close()
     return jsonify({"status": "success"})
 
-# 删除任务
 @app.route('/delete/<int:task_id>')
 def delete(task_id):
     conn = get_db()
