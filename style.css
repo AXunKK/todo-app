@@ -1,27 +1,41 @@
 /* 1. 全局基础设置 */
 body {
-    background-color: #f0f2f5; /* 柔和的浅灰色背景 */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 现代无衬线字体 */
+    /* 浅蓝到浅紫的渐变背景 */
+    background: linear-gradient(135deg, #e0f2fe 0%, #ede9fe 100%);
+    
+    /* 背景铺满整个屏幕高度 */
+    min-height: 100vh;
+    
+    /* 字体和居中 */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     max-width: 800px;
-    margin: 0 auto; /* 居中 */
+    margin: 0 auto;
     padding: 20px;
 }
 
 /* 2. 标题区域 */
 h1 {
-    color: #2c3e50;
+    color: #1e3a8a; /* 深蓝色，和背景呼应 */
     text-align: center;
     margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05); 
 }
 
 /* 3. 卡片容器（给表单和列表加白底、圆角、阴影） */
 .card {
-    background-color: #ffffff;
+    /* 背景变成 80% 透明度的白色 */
+    background-color: rgba(255, 255, 255, 0.8);
+    
+    /* 毛玻璃特效（仅在现代浏览器生效） */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1); /* 阴影微调得更柔和 */
     margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.5); /* 加一条半透明白边，更有质感 */
 }
 
 /* 4. 输入框和按钮美化 */
@@ -36,7 +50,7 @@ input[type="text"], input[type="date"] {
 }
 
 button {
-    background-color: #4CAF50;
+    background-color: #6366f1;
     color: white;
     border: none;
     padding: 12px 24px;
@@ -44,11 +58,13 @@ button {
     font-size: 16px;
     cursor: pointer;
     width: 100%;
-    transition: background-color 0.3s;
+    transition: all 0.2s ease;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); 
 }
 
 /* 5. 分类标签栏美化 */
@@ -77,7 +93,7 @@ button:hover {
 
 /* 当前选中的标签样式 */
 .tabs a.active {
-    background-color: #4CAF50;
+    background-color: #6366f1; 
     color: white;
 }
 
@@ -189,4 +205,110 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover {
 }
 .undo-btn:hover {
     background-color: #ffe0b2;
+}
+
+/* ========================================= */
+/* 进阶美化：微交互与动画 */
+/* ========================================= */
+
+/* 1. 列表项入场动画 */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+li {
+    /* 沿用你之前的样式，在最下面加上这句 */
+    animation: slideIn 0.4s ease-out forwards;
+}
+
+/* 2. 列表项悬浮效果（鼠标放上去会微微浮起并加深阴影） */
+li {
+    transition: all 0.3s ease;
+}
+
+li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    background-color: #ffffff; /* 悬浮时变成纯白，更立体 */
+}
+
+/* 3. 按钮的点击反馈（按下去会缩小） */
+button {
+    transition: all 0.2s ease;
+}
+
+button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); /* 绿色按钮的专属阴影 */
+}
+
+button:active {
+    transform: scale(0.96); /* 按下去的瞬间缩小 */
+    box-shadow: none;
+}
+
+/* 4. 终极细节：自定义滚动条 */
+/* 让浏览器右侧的滚动条变细、变圆润、颜色变淡 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* 5. 暗黑模式样式 */
+body.dark-mode {
+    background: linear-gradient(135deg, #1e1e2f 0%, #11111b 100%);
+    color: #e2e8f0;
+}
+
+body.dark-mode h1 {
+    color: #a78bfa; /* 紫色标题 */
+    text-shadow: none;
+}
+
+body.dark-mode .card, 
+body.dark-mode .tabs, 
+body.dark-mode li {
+    background-color: rgba(30, 30, 45, 0.7); /* 深色半透明 */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+body.dark-mode .tabs a {
+    color: #cbd5e1;
+}
+
+body.dark-mode .tabs a.active {
+    background-color: #8b5cf6; /* 深紫色高亮 */
+    color: white;
+}
+
+body.dark-mode input[type="text"], 
+body.dark-mode input[type="date"] {
+    background-color: rgba(15, 15, 25, 0.5);
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+/* 暗黑模式下任务的元数据文字变灰一点 */
+body.dark-mode .task-meta {
+    color: #94a3b8;
 }

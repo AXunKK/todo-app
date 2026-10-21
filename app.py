@@ -41,33 +41,44 @@ init_db()
 
 @app.route('/')
 def index():
-    filter_date = request.args.get('filter_date', '') 
-    status = request.args.get('status', 'todo')       
+    # 1. 接收所有筛选参数
+    filter_date = request.args.get('filter_date', '')
+    status = request.args.get('status', 'todo')
+    search_query = request.args.get('search', '').strip() # 新增：接收搜索词，去掉两边空格
     
     conn = get_db()
     query = 'SELECT * FROM tasks WHERE 1=1'
     params = []
     
+    # 处理状态筛选
     if status == 'todo':
         query += ' AND done = 0'
     elif status == 'done':
         query += ' AND done = 1'
     
+    # 处理日期筛选
     if filter_date:
         query += ' AND due_date = ?'
         params.append(filter_date)
+        
+    # 处理搜索筛选
+    if search_query:
+        query += ' AND task LIKE ?'
+        params.append(f'%{search_query}%') # 模糊查询，只要包含这个词就能搜出来
         
     query += ' ORDER BY id DESC' 
     
     tasks = conn.execute(query, params).fetchall()
     conn.close()
     
-    return render_template('index.html', tasks=tasks, filter_date=filter_date, status=status)
+    # 把 search_query 也传回前端，保持搜索框的状态
+    return render_template('index.html', tasks=tasks, filter_date=filter_date, status=status, search_query=search_query)
 
 @app.route('/add', methods=['POST'])
 def add():
     task_content = request.form.get('task')
     due_date = request.form.get('due_date')
+    priority = request.form.get('priority', '中') # 新增：接收优先级，默认为中
     
     if task_content:
         created_at = datetime.now().strftime("%Y-%m-%d")
@@ -76,8 +87,8 @@ def add():
             due_date = created_at
             
         conn = get_db()
-        cursor = conn.execute('INSERT INTO tasks (task, created_at, due_date) VALUES (?, ?, ?)', 
-                     (task_content, created_at, due_date))
+        cursor = conn.execute('INSERT INTO tasks (task, created_at, due_date, priority) VALUES (?, ?, ?, ?)', 
+                     (task_content, created_at, due_date, priority)) # 插入优先级
         new_id = cursor.lastrowid
         conn.commit()
         conn.close()
@@ -87,7 +98,8 @@ def add():
             "id": new_id,
             "task": task_content,
             "created_at": created_at,
-            "due_date": due_date 
+            "due_date": due_date,
+            "priority": priority # 返回给前端
         })
         
     return jsonify({"status": "error", "message": "任务内容不能为空"})
@@ -112,6 +124,16 @@ def undo(task_id):
 def delete(task_id):
     conn = get_db()
     conn.execute('DELETE FROM tasks WHERE id = ?', (task_id,))
+    conn.commit()
+    conn.close()
+    return jsonify({"status": "success"})
+
+# 一键清空已完成任务
+@app.route('/clear_completed', methods=['POST'])
+def clear_completed():
+    conn = get_db()
+    # 直接删除所有 done = 1 的数据
+    conn.execute('DELETE FROM tasks WHERE done = 1')
     conn.commit()
     conn.close()
     return jsonify({"status": "success"})
