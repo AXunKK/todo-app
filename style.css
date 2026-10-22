@@ -1,56 +1,63 @@
-/* 1. 全局基础设置 */
+/* 全局基础设置 (浅蓝紫渐变) */
 body {
-    /* 浅蓝到浅紫的渐变背景 */
     background: linear-gradient(135deg, #e0f2fe 0%, #ede9fe 100%);
-    
-    /* 背景铺满整个屏幕高度 */
     min-height: 100vh;
-    
-    /* 字体和居中 */
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
+    transition: background 0.3s, color 0.3s;
 }
 
-/* 2. 标题区域 */
 h1 {
-    color: #1e3a8a; /* 深蓝色，和背景呼应 */
+    color: #1e3a8a; 
     text-align: center;
     margin-bottom: 20px;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.05); 
 }
 
-/* 3. 卡片容器（给表单和列表加白底、圆角、阴影） */
+/* 卡片与表单 (毛玻璃质感) */
 .card {
-    /* 背景变成 80% 透明度的白色 */
     background-color: rgba(255, 255, 255, 0.8);
-    
-    /* 毛玻璃特效（仅在现代浏览器生效） */
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1); /* 阴影微调得更柔和 */
+    box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1); 
     margin-bottom: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.5); /* 加一条半透明白边，更有质感 */
+    border: 1px solid rgba(255, 255, 255, 0.5); 
 }
 
-/* 4. 输入框和按钮美化 */
-input[type="text"], input[type="date"] {
+/* 统一输入框和下拉框 */
+input[type="text"], input[type="date"], select {
     width: 100%;
     padding: 12px;
     margin: 8px 0 15px 0;
     border: 1px solid #ddd;
     border-radius: 8px;
-    box-sizing: border-box; /* 防止内边距撑破宽度 */
+    box-sizing: border-box; 
     font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: all 0.3s ease;
 }
 
+/* 焦点状态统一用高级靛蓝 */
+input[type="text"]:focus, input[type="date"]:focus, select:focus {
+    border-color: #4F46E5;
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); 
+    background-color: #ffffff;
+}
+
+/* 去除日历图标默认悬浮绿 */
+input[type="date"]:hover {
+    border-color: #4F46E5;
+}
+
+/* 统一按钮 */
 button {
-    background-color: #6366f1;
+    background-color: #4F46E5; 
     color: white;
     border: none;
     padding: 12px 24px;
@@ -62,12 +69,17 @@ button {
 }
 
 button:hover {
-    background-color: #4f46e5;
+    background-color: #4338CA;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); 
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
 }
 
-/* 5. 分类标签栏美化 */
+button:active {
+    transform: scale(0.96);
+    box-shadow: none;
+}
+
+/* 状态分类标签 */
 .tabs {
     display: flex;
     justify-content: space-around;
@@ -91,224 +103,177 @@ button:hover {
     background-color: #f0f2f5;
 }
 
-/* 当前选中的标签样式 */
 .tabs a.active {
-    background-color: #6366f1; 
+    background-color: #4F46E5; 
     color: white;
 }
 
-/* 6. 任务列表项美化 */
+/* 任务列表与优先级边条 (彻底干掉绿色) */
 ul {
-    list-style-type: none; /* 去掉默认的小圆点 */
+    list-style-type: none; 
     padding: 0;
 }
 
 li {
-    background: #fafafa;
+    background: #ffffff;
     padding: 15px;
     margin-bottom: 10px;
     border-radius: 8px;
-    border-left: 4px solid #4CAF50; /* 左侧绿色高亮条 */
+    border-left: 4px solid #cbd5e1; 
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease-out forwards;
 }
 
-/* 任务文字区域 */
-.task-content {
-    flex: 1;
-    font-size: 16px;
+/* 根据优先级变色 */
+li[data-priority="高"] { border-left-color: #ef4444; } /* 红 */
+li[data-priority="中"] { border-left-color: #f59e0b; } /* 橙 */
+li[data-priority="低"] { border-left-color: #3b82f6; } /* 蓝 */
+
+li:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
-/* 任务元数据（日期、状态） */
-.task-meta {
-    font-size: 12px;
-    color: #888;
-    margin-left: 10px;
+.task-content { flex: 1; font-size: 16px; }
+.task-meta { font-size: 12px; color: #888; margin-top: 4px; }
+
+/* 已完成的任务：强制变灰、加删除线 */
+.task-done {
+    text-decoration: line-through;
+    color: #999;
+    border-left-color: #ccc !important; 
+    background-color: #f9f9f9;
 }
 
-/* 按钮美化 */
+/* 列表内部按钮 (完成/删除/撤销) */
 .task-actions a {
     text-decoration: none;
     font-size: 13px;
     padding: 6px 10px;
     border-radius: 4px;
     margin-left: 5px;
+    display: inline-block;
+    transition: all 0.2s;
 }
 
-.complete-btn {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
+/* 完成按钮：浅紫底，深紫字 */
+.complete-btn { background-color: #e0e7ff; color: #4338ca; }
+.complete-btn:hover { background-color: #c7d2fe; }
 
-.delete-btn {
-    background-color: #ffebee;
-    color: #c62828;
-}
+/* 删除按钮：浅红底，红字 */
+.delete-btn { background-color: #ffebee; color: #c62828; }
+.delete-btn:hover { background-color: #ffcdd2; }
 
-/* 已完成任务的样式（加删除线、变灰） */
-.task-done {
-    text-decoration: line-through;
-    color: #999;
-    border-left-color: #ccc; /* 已完成的任务左侧变成灰色 */
-}
+/* 撤销按钮：浅橙底，橙字 */
+.undo-btn { background-color: #fff3e0; color: #ef6c00; }
+.undo-btn:hover { background-color: #ffe0b2; }
 
-
-/* 输入框整体外观 */
-input[type="date"] {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0 15px 0;
-    border: 2px solid #e0e0e0; /* 稍微加粗边框 */
-    border-radius: 8px;
-    background-color: #fafafa;
-    font-size: 15px;
-    color: #333;
-    font-family: inherit;
-    outline: none; /* 去掉点击时的蓝框 */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-    cursor: pointer;
-}
-
-/* 鼠标悬停时的效果 */
-input[type="date"]:hover {
-    border-color: #4CAF50; /* 悬停变成绿色 */
-}
-
-/* 点击聚焦时的效果 */
-input[type="date"]:focus {
-    border-color: #4CAF50;
-    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.2); /* 绿色柔和光晕 */
-    background-color: #ffffff;
-}
-
-/* 隐藏浏览器默认的丑日历图标，替换成我们自定义的 */
-input[type="date"]::-webkit-calendar-picker-indicator {
-    cursor: pointer;
-    font-size: 18px;
-    /* 下面这行代码让图标悬停时稍微变大 */
-    transition: transform 0.2s;
-}
-
-input[type="date"]::-webkit-calendar-picker-indicator:hover {
-    transform: scale(1.2);
-}
-.undo-btn {
-    background-color: #fff3e0; /* 浅橙色底 */
-    color: #ef6c00; /* 深橙色字 */
-    text-decoration: none;
-    font-size: 13px;
-    padding: 6px 10px;
-    border-radius: 4px;
-    margin-left: 5px;
-}
-.undo-btn:hover {
-    background-color: #ffe0b2;
-}
-
-/* ========================================= */
-/* 进阶美化：微交互与动画 */
-/* ========================================= */
-
-/* 1. 列表项入场动画 */
+/* 动画与滚动条 */
 @keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-li {
-    /* 沿用你之前的样式，在最下面加上这句 */
-    animation: slideIn 0.4s ease-out forwards;
-}
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background-color: rgba(0, 0, 0, 0.15); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background-color: rgba(0, 0, 0, 0.3); }
 
-/* 2. 列表项悬浮效果（鼠标放上去会微微浮起并加深阴影） */
-li {
-    transition: all 0.3s ease;
-}
+/* 暗黑模式*/
+body.dark-mode { background: linear-gradient(135deg, #1e1e2f 0%, #11111b 100%); color: #e2e8f0; }
+body.dark-mode h1 { color: #a78bfa; text-shadow: none; }
 
-li:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-    background-color: #ffffff; /* 悬浮时变成纯白，更立体 */
-}
-
-/* 3. 按钮的点击反馈（按下去会缩小） */
-button {
-    transition: all 0.2s ease;
-}
-
-button:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3); /* 绿色按钮的专属阴影 */
-}
-
-button:active {
-    transform: scale(0.96); /* 按下去的瞬间缩小 */
-    box-shadow: none;
-}
-
-/* 4. 终极细节：自定义滚动条 */
-/* 让浏览器右侧的滚动条变细、变圆润、颜色变淡 */
-::-webkit-scrollbar {
-    width: 8px;
-}
-
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-    background-color: rgba(0, 0, 0, 0.15);
-    border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.3);
-}
-
-/* 5. 暗黑模式样式 */
-body.dark-mode {
-    background: linear-gradient(135deg, #1e1e2f 0%, #11111b 100%);
-    color: #e2e8f0;
-}
-
-body.dark-mode h1 {
-    color: #a78bfa; /* 紫色标题 */
-    text-shadow: none;
-}
-
-body.dark-mode .card, 
-body.dark-mode .tabs, 
-body.dark-mode li {
-    background-color: rgba(30, 30, 45, 0.7); /* 深色半透明 */
+body.dark-mode .card, body.dark-mode .tabs, body.dark-mode li {
+    background-color: rgba(30, 30, 45, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 }
 
-body.dark-mode .tabs a {
-    color: #cbd5e1;
-}
+body.dark-mode li { background: rgba(30, 30, 45, 0.9); }
+body.dark-mode li[data-priority="高"] { border-left-color: #ef4444; }
+body.dark-mode li[data-priority="中"] { border-left-color: #f59e0b; }
+body.dark-mode li[data-priority="低"] { border-left-color: #3b82f6; }
 
-body.dark-mode .tabs a.active {
-    background-color: #8b5cf6; /* 深紫色高亮 */
-    color: white;
-}
+body.dark-mode .tabs a { color: #cbd5e1; }
+body.dark-mode .tabs a.active { background-color: #8b5cf6; color: white; }
 
-body.dark-mode input[type="text"], 
-body.dark-mode input[type="date"] {
+body.dark-mode input[type="text"], body.dark-mode input[type="date"], body.dark-mode select {
     background-color: rgba(15, 15, 25, 0.5);
     border-color: #334155;
     color: #e2e8f0;
 }
 
-/* 暗黑模式下任务的元数据文字变灰一点 */
-body.dark-mode .task-meta {
-    color: #94a3b8;
+body.dark-mode .task-meta { color: #94a3b8; }
+
+/* 桌宠与气泡特效*/
+#desktop-pet {
+    position: fixed;
+    bottom: 40px;
+    right: 40px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    animation: float 3s ease-in-out infinite;
+}
+
+#pet-avatar {
+    width: 60px;
+    height: 60px;
+    background-color: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    transition: transform 0.2s;
+}
+
+#desktop-pet:hover #pet-avatar {
+    transform: scale(1.1) rotate(10deg);
+}
+
+#pet-bubble {
+    background-color: #4F46E5; 
+    color: white;
+    padding: 10px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    position: relative;
+}
+
+#pet-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px 6px 0;
+    border-style: solid;
+    border-color: #4F46E5 transparent transparent transparent;
+}
+
+#pet-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
 }

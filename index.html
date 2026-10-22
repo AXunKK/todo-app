@@ -2,7 +2,8 @@
 <html>
 <head>
     <title>我的待办清单</title>
-    <!-- 引入我们刚才写的 CSS 文件 -->
+
+    <!-- 引入CSS 文件 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
@@ -15,7 +16,7 @@
 
     <h1>✨ 我的待办清单</h1>
     
-    <!-- 1. 添加任务卡片 -->
+    <!-- 添加任务卡片 -->
     <div class="card">
         <form id="addForm" action="/add" method="POST">
             <input type="text" name="task" placeholder="输入新任务..." required>
@@ -29,10 +30,9 @@
         </form>
     </div>
 
-        <!-- 新增：搜索表单 -->
+    <!-- 搜索表单 -->
     <div class="card">
         <form action="/" method="GET">
-            <!-- 保持当前的分类和日期状态，防止搜索时丢失 -->
             <input type="hidden" name="status" value="{{ status }}">
             <input type="hidden" name="filter_date" value="{{ filter_date }}">
             
@@ -49,14 +49,14 @@
         </form>
     </div>
 
-    <!-- 2. 状态分类标签 -->
+    <!-- 状态分类标签 -->
     <div class="tabs">
         <a href="/?status=all&filter_date={{ filter_date }}" class="{% if status == 'all' %}active{% endif %}">全部</a>
         <a href="/?status=todo&filter_date={{ filter_date }}" class="{% if status == 'todo' %}active{% endif %}">未完成</a>
         <a href="/?status=done&filter_date={{ filter_date }}" class="{% if status == 'done' %}active{% endif %}">已完成</a>
     </div>
 
-    <!-- 3. 日期筛选卡片 -->
+    <!-- 日期筛选卡片 -->
     <div class="card">
         <form action="/" method="GET">
             <input type="hidden" name="status" value="{{ status }}">
@@ -69,12 +69,12 @@
         </form>
     </div>
 
-    <!-- 4. 任务列表 -->
+    <!-- 任务列表 -->
     <ul id="taskList">
         {% for task in tasks %}
-            <!-- 如果任务已完成，加上 task-done 样式 -->
-                        <li id="task-{{ task['id'] }}" class="{% if task['done'] == 1 %}task-done{% endif %}">
+            <li id="task-{{ task['id'] }}" data-priority="{{ task['priority'] }}" class="{% if task['done'] == 1 %}task-done{% endif %}">
                 <div class="task-content">
+
                     <!-- 任务名称 -->
                     <span style="font-weight: bold;">{{ task['task'] }}</span>
                     
@@ -109,7 +109,7 @@
         {% endfor %}
     </ul>
 
-        <!-- 在 </ul> 后面加上清空按钮 -->
+    <!-- 清空按钮 -->
     <div style="text-align: center; margin-top: 20px;">
         {% if status == 'done' or status == 'all' %}
             <button id="clearCompletedBtn" style="background-color: #ef4444; width: auto; padding: 10px 20px; font-size: 14px;">
@@ -118,11 +118,13 @@
         {% endif %}
     </div>
 
-    <!-- ========================================== -->
-    <!-- 所有的 JavaScript 代码必须放在 <script> 标签里 -->
-    <!-- ========================================== -->
+    <div id="desktop-pet">
+        <div id="pet-bubble">今天也要加油哦！✨</div>
+        <div id="pet-avatar">🐱</div>
+    </div>
+
     <script>
-        // --- 1. 自动填充今天日期 ---
+        // --- 自动填充今天日期 ---
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date();
             const yyyy = today.getFullYear();
@@ -136,31 +138,19 @@
             }
         });
 
-        // --- 2. 监听添加任务的提交（无刷新添加） ---
-                // --- 2. 监听添加任务的提交（无刷新添加） ---
+        // --- 监听添加任务的提交 ---
         document.getElementById('addForm').addEventListener('submit', function(e) {
             e.preventDefault(); 
-
-            // 1. 获取输入框的内容
             const taskInput = document.querySelector('input[name="task"]');
             const dateInput = document.querySelector('input[name="due_date"]');
-            
-            // 👇 新增：获取优先级下拉框的内容（加在这里！）
             const priorityInput = document.querySelector('select[name="priority"]');
             
-            // 2. 打包数据
             const formData = new FormData();
             formData.append('task', taskInput.value);
             formData.append('due_date', dateInput.value);
-            
-            // 👇 新增：把优先级也打包进去（加在这里！）
             formData.append('priority', priorityInput.value);
 
-            // 3. 使用 fetch 发送异步请求
-            fetch('/add', {
-                method: 'POST',
-                body: formData
-            })
+            fetch('/add', { method: 'POST', body: formData })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
@@ -174,7 +164,6 @@
                     li.className = ''; 
                     li.id = `task-${data.id}`;
                     
-                    // 根据优先级生成对应的颜色样式
                     let priorityHtml = '';
                     if (data.priority === '高') {
                         priorityHtml = `<span style="background: #fee2e2; color: #ef4444; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 8px;">高</span>`;
@@ -184,7 +173,6 @@
                         priorityHtml = `<span style="background: #dbeafe; color: #3b82f6; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-left: 8px;">低</span>`;
                     }
 
-                    // 动态在页面列表中插入新任务
                     li.innerHTML = `
                         <div class="task-content">
                             <span style="font-weight: bold;">${data.task}</span>
@@ -204,7 +192,7 @@
             .catch(error => console.error('Error:', error));
         });
 
-        // --- 3. 事件委托（完成、撤销、删除） ---
+        // --- 事件委托（完成、撤销、删除） ---
         const taskList = document.getElementById('taskList');
         taskList.addEventListener('click', function(e) {
             const completeBtn = e.target.closest('.complete-btn');
@@ -217,19 +205,17 @@
                 const li = completeBtn.closest('li');
                 const taskId = li.id.split('-')[1]; 
 
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            li.classList.add('task-done');
-                            const actions = li.querySelector('.task-actions');
-                            actions.innerHTML = `
-                                <span style="color: #2e7d32; font-weight: bold;">✅ 已完成</span>
-                                <a href="/undo/${taskId}" class="undo-btn">撤销</a>
-                                <a href="/delete/${taskId}" class="delete-btn">删除</a>
-                            `;
-                        }
-                    });
+                fetch(url).then(res => res.json()).then(data => {
+                    if (data.status === 'success') {
+                        li.classList.add('task-done');
+                        const actions = li.querySelector('.task-actions');
+                        actions.innerHTML = `
+                            <span style="color: #2e7d32; font-weight: bold;">✅ 已完成</span>
+                            <a href="/undo/${taskId}" class="undo-btn">撤销</a>
+                            <a href="/delete/${taskId}" class="delete-btn">删除</a>
+                        `;
+                    }
+                });
             }
 
             if (undoBtn) {
@@ -238,18 +224,16 @@
                 const li = undoBtn.closest('li');
                 const taskId = li.id.split('-')[1];
 
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            li.classList.remove('task-done');
-                            const actions = li.querySelector('.task-actions');
-                            actions.innerHTML = `
-                                <a href="/complete/${taskId}" class="complete-btn">完成</a>
-                                <a href="/delete/${taskId}" class="delete-btn">删除</a>
-                            `;
-                        }
-                    });
+                fetch(url).then(res => res.json()).then(data => {
+                    if (data.status === 'success') {
+                        li.classList.remove('task-done');
+                        const actions = li.querySelector('.task-actions');
+                        actions.innerHTML = `
+                            <a href="/complete/${taskId}" class="complete-btn">完成</a>
+                            <a href="/delete/${taskId}" class="delete-btn">删除</a>
+                        `;
+                    }
+                });
             }
 
             if (deleteBtn) {
@@ -259,24 +243,21 @@
 
                 if (!confirm('确定要删除这个任务吗？')) return;
 
-                fetch(url)
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.status === 'success') {
-                            li.style.transition = 'opacity 0.3s';
-                            li.style.opacity = '0';
-                            setTimeout(() => li.remove(), 300);
-                        }
-                    });
+                fetch(url).then(res => res.json()).then(data => {
+                    if (data.status === 'success') {
+                        li.style.transition = 'opacity 0.3s';
+                        li.style.opacity = '0';
+                        setTimeout(() => li.remove(), 300);
+                    }
+                });
             }
         });
 
-        // --- 4. 一键清空已完成任务 ---
+        // ---  一键清空已完成任务 ---
         const clearCompletedBtn = document.getElementById('clearCompletedBtn');
         if (clearCompletedBtn) {
             clearCompletedBtn.addEventListener('click', function(e) {
                 if (!confirm('⚠️ 确定要清空所有已完成的待办事项吗？此操作不可恢复！')) return;
-
                 fetch('/clear_completed', { method: 'POST' })
                 .then(res => res.json())
                 .then(data => {
@@ -288,19 +269,16 @@
             });
         }
 
-        // --- 5. 暗黑模式切换逻辑 ---
+        // --- 暗黑模式切换逻辑 ---
         const themeToggle = document.getElementById('themeToggle');
         if (themeToggle) {
             const body = document.body;
-            
             if (localStorage.getItem('theme') === 'dark') {
                 body.classList.add('dark-mode');
                 themeToggle.innerText = '☀️ 切换模式';
             }
-
             themeToggle.addEventListener('click', function() {
                 body.classList.toggle('dark-mode');
-                
                 if (body.classList.contains('dark-mode')) {
                     themeToggle.innerText = '☀️ 切换模式';
                     localStorage.setItem('theme', 'dark'); 
@@ -308,6 +286,41 @@
                     themeToggle.innerText = '🌙 切换模式';
                     localStorage.setItem('theme', 'light'); 
                 }
+            });
+        }
+
+        // --- 桌宠互动逻辑 ---
+        const pet = document.getElementById('desktop-pet');
+        const bubble = document.getElementById('pet-bubble');
+        
+        const quotes = [
+            "今天也要加油哦！",
+            "不必追求完美，优先做到完成！",
+            "少一点焦虑空想，多一点实际行动！",
+            "放下杂念，拒绝拖延与内耗！",
+            "写完这个，奖励自己喝杯水！",
+            "认真完成今天的清单，日积月累，你想要的结果自然会慢慢靠近！",
+            "不必焦虑进度，专注眼前的每一项任务!",
+            "所有耀眼的成绩，都藏在日复一日的坚持里!",
+            "不要害怕任务繁多，一步一步走就好!",
+            "长路漫漫，贵在坚持!",
+            "好好对待今天的学习任务，慢慢沉淀，默默成长，时间看得见你所有的付出！",
+            "慢慢来，稳一点，你付出的每一分时间，都在悄悄铺垫想要的结果！"
+        ];
+
+        let quoteIndex = 0;
+        let bubbleTimeout;
+
+        if (pet && bubble) {
+            pet.addEventListener('click', function() {
+                quoteIndex = (quoteIndex + 1) % quotes.length;
+                bubble.innerText = quotes[quoteIndex];
+                bubble.classList.add('show');
+
+                clearTimeout(bubbleTimeout);
+                bubbleTimeout = setTimeout(() => {
+                    bubble.classList.remove('show');
+                }, 3000);
             });
         }
     </script>
