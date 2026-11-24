@@ -1,6 +1,11 @@
 __pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
 build/
 dist/
-*.spec
-*.exe
 database.db
+database.db-*
+*.log
+.idea/
+.vscode/
